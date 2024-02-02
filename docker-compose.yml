@@ -1,0 +1,39 @@
+version: '3.4'
+
+services:
+  mysqleat:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: smarteat
+      MYSQL_USER: app
+      MYSQL_PASSWORD: 12345678
+    ports:
+      - "33306:3306"
+    networks:
+      - smart-eat
+    volumes:
+      - mysql_data:/var/lib/mysql
+  
+  smarteats:
+    image: ${DOCKER_REGISTRY-}smarteats
+    restart: always
+    build:
+      context: .
+      dockerfile: SmartEats/Dockerfile
+    depends_on:
+      - mysqleat
+    environment:
+        DbServer: "mysqleat"
+        DbPort: "33306"
+        DbUser: "app"
+        Password: "12345678"
+        Database: "smarteat"
+    networks:
+      - smart-eat
+networks:
+  smart-eat:
+    driver: bridge
+volumes:
+  mysql_data:
+    driver: local
