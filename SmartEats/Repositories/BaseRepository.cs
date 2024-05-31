@@ -5,7 +5,7 @@ using SmartEats.Models;
 
 namespace SmartEats.Repositories
 {
-    public abstract class BaseRepository<TBanco, TEntity> : IDisposable, IBaseRepository<TBanco, TEntity> where TEntity : Audit where TBanco : DbContext
+    public abstract class BaseRepository<TBanco, TEntity> : IDisposable, IBaseRepository<TBanco, TEntity> where TEntity : class where TBanco : DbContext
     {
         protected readonly TBanco _context;
         protected BaseRepository(TBanco context)
@@ -30,7 +30,7 @@ namespace SmartEats.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public virtual IQueryable<TEntity> Search(TEntity entity)
+        public virtual IQueryable<TEntity> Search()
         {
             return _context.Set<TEntity>().AsQueryable();
         }

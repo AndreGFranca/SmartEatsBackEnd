@@ -9,6 +9,6 @@ namespace SmartEats.Repositories
         Task Update(TEntity entity);
         Task AddRange(IList<TEntity> entity);
         Task Delete(TEntity entity);
-        IQueryable<TEntity> Search(TEntity entity);
+        IQueryable<TEntity> Search();
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartEats.DataBase;
 
@@ -10,9 +11,11 @@ using SmartEats.DataBase;
 namespace SmartEats.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240530213444_NovasTabelas")]
+    partial class NovasTabelas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -172,108 +175,6 @@ namespace SmartEats.Migrations
                     b.ToTable("Companies");
                 });
 
-            modelBuilder.Entity("SmartEats.Models.Confirms.Confirm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Compareceu")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("Confirmou")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateOnly>("DataConfirmacao")
-                        .HasColumnType("date");
-
-                    b.Property<TimeOnly>("HoraDeAlmoco")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime?>("HorarioComparecimento")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdEmpresa");
-
-                    b.ToTable("Confirms");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Justifies.Justify", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("IdAprovador")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IdFuncionario")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Justificativa")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdAprovador");
-
-                    b.HasIndex("IdEmpresa");
-
-                    b.HasIndex("IdFuncionario");
-
-                    b.ToTable("Justifies");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Menus.Menu", b =>
-                {
-                    b.Property<DateOnly>("Data")
-                        .HasColumnType("date")
-                        .HasColumnOrder(0);
-
-                    b.Property<int>("IdEmpresa")
-                        .HasColumnType("int")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Data", "IdEmpresa");
-
-                    b.HasIndex("IdEmpresa");
-
-                    b.ToTable("Menus");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Menus.PlateDay", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("CardapioDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Prato")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CardapioDate", "CompanyId");
-
-                    b.ToTable("PlatesDay");
-                });
-
             modelBuilder.Entity("SmartEats.Models.Users.User", b =>
                 {
                     b.Property<string>("Id")
@@ -281,6 +182,9 @@ namespace SmartEats.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("BirthDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("CPF")
                         .IsRequired()
@@ -405,64 +309,6 @@ namespace SmartEats.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SmartEats.Models.Confirms.Confirm", b =>
-                {
-                    b.HasOne("SmartEats.Models.Companies.Company", "Empresa")
-                        .WithMany()
-                        .HasForeignKey("IdEmpresa")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Empresa");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Justifies.Justify", b =>
-                {
-                    b.HasOne("SmartEats.Models.Users.User", "Aprovador")
-                        .WithMany()
-                        .HasForeignKey("IdAprovador");
-
-                    b.HasOne("SmartEats.Models.Companies.Company", "Empresa")
-                        .WithMany()
-                        .HasForeignKey("IdEmpresa")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SmartEats.Models.Users.User", "Funcionario")
-                        .WithMany()
-                        .HasForeignKey("IdFuncionario")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Aprovador");
-
-                    b.Navigation("Empresa");
-
-                    b.Navigation("Funcionario");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Menus.Menu", b =>
-                {
-                    b.HasOne("SmartEats.Models.Companies.Company", "Empresa")
-                        .WithMany()
-                        .HasForeignKey("IdEmpresa")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Empresa");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Menus.PlateDay", b =>
-                {
-                    b.HasOne("SmartEats.Models.Menus.Menu", "Cardapio")
-                        .WithMany("PlatesDay")
-                        .HasForeignKey("CardapioDate", "CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cardapio");
-                });
-
             modelBuilder.Entity("SmartEats.Models.Users.User", b =>
                 {
                     b.HasOne("SmartEats.Models.Companies.Company", "Company")
@@ -477,11 +323,6 @@ namespace SmartEats.Migrations
             modelBuilder.Entity("SmartEats.Models.Companies.Company", b =>
                 {
                     b.Navigation("Workers");
-                });
-
-            modelBuilder.Entity("SmartEats.Models.Menus.Menu", b =>
-                {
-                    b.Navigation("PlatesDay");
                 });
 #pragma warning restore 612, 618
         }

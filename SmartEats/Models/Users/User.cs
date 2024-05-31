@@ -12,7 +12,6 @@ namespace SmartEats.Models.Users
         public int Id_Company { get; set; }
         [ForeignKey("Id_Company")]
         public virtual Company Company { get; set; }
-        public DateTime BirthDate { get; set; }
         public TypeUser TypeUser { get; set; }
 
         public User() : base()

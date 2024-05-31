@@ -2,12 +2,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SmartEats.DataBase;
 using SmartEats.Models.Users;
 using SmartEats.Repositories;
+using SmartEats.Repositories.Menus;
 using SmartEats.Seeds;
+using SmartEats.Services.Menus;
 using SmartEats.Services.Users;
 using System.Text;
 
@@ -29,6 +32,19 @@ namespace SmartEats
             var password = Environment.GetEnvironmentVariable("Password") ?? "12345678";
             var database = Environment.GetEnvironmentVariable("Database") ?? "smarteat";
             var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password}";
+            // ConfigureServices method
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder
+                        //.WithOrigins("http://localhost:8081", "http://172.19.0.2:52707")
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        //.AllowCredentials()
+                        );
+            });
+
 
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDBContext>(opts => {
@@ -42,7 +58,10 @@ namespace SmartEats
                 //);
             });
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -55,15 +74,65 @@ namespace SmartEats
                         ValidAudience = configuration["Jwt:Issuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                     };
+
+                    //options.Events = new JwtBearerEvents
+                    //{
+                    //    OnAuthenticationFailed = context =>
+                    //    {
+                    //        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                    //        {
+                    //            context.Response.Headers.Add("Token-Expired", "true");
+                    //        }
+                    //        context.Response.StatusCode = 401;
+                    //        context.Response.ContentType = "application/json";
+                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "Authentication failed." });
+                    //        return context.Response.WriteAsync(result);
+                    //    },
+                    //    OnChallenge = context =>
+                    //    {
+                    //        context.Response.StatusCode = 401;
+                    //        context.Response.ContentType = "application/json";
+                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
+                    //        return context.Response.WriteAsync(result);
+                    //    },
+                    //    OnForbidden = context => {
+                    //        context.Response.StatusCode = 401;
+                    //        context.Response.ContentType = "application/json";
+                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
+                    //        return context.Response.WriteAsync(result);
+                    //    },OnTokenValidated = context => {
+                    //        context.Response.StatusCode = 401;
+                    //        context.Response.ContentType = "application/json";
+                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
+                    //        return context.Response.WriteAsync(result);
+                    //    }
+
+
+                        
+                        
+
+                        
+                    //};
                 });
 
-            //builder.Services.AddAuthorization(opts =>
-            //{
-            //    opts.AddPolicy("IdadeMinima", policy =>
-            //    {
-            //        policy.AddRequirements(new IdadeMinima(18));
-            //    });
-            //});
+            builder.Services.AddAuthorization(options =>
+            {
+                //opts.AddPolicy("IdadeMinima", policy =>
+                //{
+                //    policy.AddRequirements(new IdadeMinima(18));
+                //});
+
+                //Administrador,
+                //Empresa,
+                //RH,
+                //Funcionario,
+                //Cozinha                
+                options.AddPolicy("AdministradorPolicy", policy => policy.RequireClaim("role", "Administrador"));
+                options.AddPolicy("EmpresaPolicy", policy => policy.RequireClaim("role", "Empresa"));
+                options.AddPolicy("FuncionarioPolicy", policy => policy.RequireClaim("role", "Funcionario"));
+                options.AddPolicy("CozinhaPolicy", policy => policy.RequireClaim("role", "Cozinha"));
+                options.AddPolicy("RHPolicy", policy => policy.RequireClaim("role", "RH"));
+            });
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             builder.Services.AddControllers();
@@ -99,14 +168,27 @@ namespace SmartEats
                                         });
             });
             builder.Services
-                .AddIdentity<User, IdentityRole>()
+                .AddIdentity<User, IdentityRole>(options =>
+                {
+                    // Permitir senhas simples inicialmente
+                    options.Password.RequireDigit = false;
+                    options.Password.RequiredLength = 8;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequiredUniqueChars = 0;
+                })
                 .AddEntityFrameworkStores<ApplicationDBContext>()
                 .AddDefaultTokenProviders();
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<TokenService>();
 
-            var app = builder.Build();
+            builder.Services.AddScoped<MenuService>();
+            builder.Services.AddScoped<IMenusRepository, MenusRepository>();
 
+            var app = builder.Build();
+            // Configure method
+            app.UseCors("CorsPolicy");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -117,6 +199,7 @@ namespace SmartEats
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
 
             app.MapControllers();

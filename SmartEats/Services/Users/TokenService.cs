@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using SmartEats.Enums.Users;
 
 namespace SmartEats.Services.Users
 {
@@ -17,10 +18,13 @@ namespace SmartEats.Services.Users
         {
             Claim[] claims = new Claim[] {
             new Claim("id",user.Id),
-            new Claim("username",user.UserName),
-            new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString()),
-            new Claim("loginTimestamp", DateTime.UtcNow.ToString())
-
+            new Claim("name",user.Name),
+            new Claim("typeUser",((int)user.TypeUser).ToString()),
+            //new Claim("username",user.UserName),            
+            new Claim("loginTimestamp", DateTime.UtcNow.ToString()),
+            new Claim("userName", user.UserName),
+            new Claim("cpf", user.CPF),
+            new Claim(ClaimTypes.Role, user.TypeUser.ToString()),
         };
 
             var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SymmetricSecurityKey"]));

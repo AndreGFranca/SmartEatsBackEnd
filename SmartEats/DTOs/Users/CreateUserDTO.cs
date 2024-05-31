@@ -11,7 +11,6 @@ namespace SmartEats.DTOs.Users
         public string CPF { get; set; }
         public string UserName { get; set; }
         public int Id_Company { get; set; }
-        public DateTime BirthDate { get; set; }
         public TypeUser TypeUser { get; set; }
         [Required]
         [DataType(DataType.Password)]

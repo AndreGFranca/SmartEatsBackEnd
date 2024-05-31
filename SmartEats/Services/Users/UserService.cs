@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using SmartEats.DTOs.Users;
 using SmartEats.Models.Users;
+using System.Security.Claims;
 
 namespace SmartEats.Services.Users
 {
@@ -41,6 +42,26 @@ namespace SmartEats.Services.Users
                                 .Users.FirstOrDefault(userdb => userdb.NormalizedUserName == dto.Email.ToUpper());
             var token = _tokenService.GenerateToken(user);
             return token;
+        }
+
+        public async Task<bool> UpdateUser(string id, EditUserDTO editUser)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                _mapper.Map(editUser, user);
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    return true;
+                }
+                return false;
+
+            }catch(Exception ex)
+            {
+                return false;
+            }
+
         }
 
         public async Task<ReadUserDTO> GetUser(string idUsuario)

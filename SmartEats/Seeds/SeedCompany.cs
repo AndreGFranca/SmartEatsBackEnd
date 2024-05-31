@@ -12,10 +12,10 @@ namespace SmartEats.Seeds
             if (!context.Companies.Any())
             {
                 context.Companies.AddRange(
-                    new Company { Name = "Firma 1" },
-                    new Company { Name = "Firma 2" },
-                    new Company { Name = "Firma 3" },
-                    new Company { Name = "Firma 4" }
+                    new Company { Name = "André's Company",CNPJ ="123456789"  },
+                    new Company { Name = "Rita's Company", CNPJ = "123456780" },
+                    new Company { Name = "Diego's Company", CNPJ = "123456781" },
+                    new Company { Name = "Vini's Company", CNPJ = "123456782" }
                 );
 
                 context.SaveChanges();
