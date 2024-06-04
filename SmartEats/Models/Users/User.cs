@@ -14,6 +14,8 @@ namespace SmartEats.Models.Users
         public virtual Company Company { get; set; }
         public TypeUser TypeUser { get; set; }
 
+        public bool Ativo { get; set; }
+
         public User() : base()
         {
 

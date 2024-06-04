@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SmartEats.DataBase;
+﻿using SmartEats.DataBase;
 using SmartEats.Models.Menus;
 
 namespace SmartEats.Repositories.Menus

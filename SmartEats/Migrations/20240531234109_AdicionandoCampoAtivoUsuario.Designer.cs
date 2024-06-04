@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartEats.DataBase;
 
@@ -10,9 +11,11 @@ using SmartEats.DataBase;
 namespace SmartEats.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240531234109_AdicionandoCampoAtivoUsuario")]
+    partial class AdicionandoCampoAtivoUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,10 +199,6 @@ namespace SmartEats.Migrations
                     b.Property<int>("IdEmpresa")
                         .HasColumnType("int");
 
-                    b.Property<string>("IdFuncionario")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.HasKey("Id");
 
                     b.HasIndex("IdEmpresa");
@@ -240,8 +239,8 @@ namespace SmartEats.Migrations
 
             modelBuilder.Entity("SmartEats.Models.Menus.Menu", b =>
                 {
-                    b.Property<DateTime>("Data")
-                        .HasColumnType("datetime(6)")
+                    b.Property<DateOnly>("Data")
+                        .HasColumnType("date")
                         .HasColumnOrder(0);
 
                     b.Property<int>("IdEmpresa")
@@ -261,8 +260,8 @@ namespace SmartEats.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CardapioDate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("CardapioDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
@@ -473,12 +472,17 @@ namespace SmartEats.Migrations
             modelBuilder.Entity("SmartEats.Models.Users.User", b =>
                 {
                     b.HasOne("SmartEats.Models.Companies.Company", "Company")
-                        .WithMany()
+                        .WithMany("Workers")
                         .HasForeignKey("Id_Company")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("SmartEats.Models.Companies.Company", b =>
+                {
+                    b.Navigation("Workers");
                 });
 
             modelBuilder.Entity("SmartEats.Models.Menus.Menu", b =>

@@ -7,6 +7,7 @@ namespace SmartEats.DTOs.Menus
     {
         public DateOnly Data { get; set; }
         public int IdEmpresa { get; set; }
-        public IList<PlateDay> PlatesDay { get; set; }
+        public IList<ReadPlateDto> PlatesDay { get; set; }
+        public bool Editable { get; set; } = false;
     }
 }

@@ -7,11 +7,8 @@ namespace SmartEats.Models.Companies
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        
+        public string Name { get; set; }        
         public string CNPJ { get; set; }
-        public virtual IList<User>? Workers { get; set; }
-
 
     }
 }

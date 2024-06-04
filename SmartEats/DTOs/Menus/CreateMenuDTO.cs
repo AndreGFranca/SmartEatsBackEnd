@@ -12,6 +12,6 @@ namespace SmartEats.DTOs.Menus
         [Required]
         public int IdEmpresa { get; set; }
         [Required]
-        public IList<PlateDay> PlatesDay { get; set; }
+        public IList<CreatePlateDTO> PlatesDay { get; set; }
     }
 }

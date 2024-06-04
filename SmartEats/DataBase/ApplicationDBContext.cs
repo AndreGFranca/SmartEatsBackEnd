@@ -18,11 +18,18 @@ namespace SmartEats.DataBase
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Menu>().Property(e => e.Data)
+                .HasConversion(new DateOnlyConverter());
+
+            modelBuilder.Entity<Menu>()
+                .HasKey(m => new { m.Data, m.IdEmpresa });
+
             modelBuilder.Entity<Company>()
                         .HasIndex(e => e.CNPJ)
                         .IsUnique();
-            modelBuilder.Entity<Menu>()
-                .HasKey(m => new { m.Data, m.IdEmpresa });
+
+            modelBuilder.Entity<PlateDay>().Property(e => e.CardapioDate)
+                .HasConversion(new DateOnlyConverter());
 
             modelBuilder.Entity<PlateDay>()
                 .HasOne(pd => pd.Cardapio)

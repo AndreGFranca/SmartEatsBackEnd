@@ -1,17 +1,25 @@
 
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SmartEats.DataBase;
 using SmartEats.Models.Users;
-using SmartEats.Repositories;
+using SmartEats.Repositories.Confirms;
 using SmartEats.Repositories.Menus;
+using SmartEats.Repositories.Users;
 using SmartEats.Seeds;
+using SmartEats.Services.Confirms;
 using SmartEats.Services.Menus;
 using SmartEats.Services.Users;
+using SmartEats.Services.Validators;
+using System.Globalization;
+using System.Net;
 using System.Text;
 
 namespace SmartEats
@@ -72,7 +80,8 @@ namespace SmartEats
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = configuration["Jwt:Issuer"],
                         ValidAudience = configuration["Jwt:Issuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
+                        SaveSigninToken = true
                     };
 
                     //options.Events = new JwtBearerEvents
@@ -135,7 +144,27 @@ namespace SmartEats
             });
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState
+                                        .Where(e => e.Value.Errors.Count > 0)
+                                        .ToDictionary(
+                                            e => e.Key,
+                                            e => e.Value.Errors.Select(er => er.ErrorMessage).ToArray()
+                                        );
+
+                    var response = new
+                    {
+                        status = (int)HttpStatusCode.BadRequest,
+                        errors
+                    };
+
+                    return new BadRequestObjectResult(response);
+                };
+            });
+            ;
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -180,11 +209,17 @@ namespace SmartEats
                 })
                 .AddEntityFrameworkStores<ApplicationDBContext>()
                 .AddDefaultTokenProviders();
+
             builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+
             builder.Services.AddScoped<TokenService>();
 
             builder.Services.AddScoped<MenuService>();
             builder.Services.AddScoped<IMenusRepository, MenusRepository>();
+
+            builder.Services.AddScoped<ConfirmService>();
+            builder.Services.AddScoped<IConfirmsRepository, ConfirmsRepository>();
 
             var app = builder.Build();
             // Configure method
@@ -209,12 +244,30 @@ namespace SmartEats
                 
                 var services = scope.ServiceProvider;
 
-                var context = services.GetRequiredService<ApplicationDBContext>();
+                ApplicationDBContext? context = null;
+                while (true)
+                {
+                    try
+                    {
+                        if (context.Database.CanConnect())
+                        {
+                            break;
+                        }
+                        context = services.GetRequiredService<ApplicationDBContext>();
+                    }
+                    catch
+                    {
+                        context = services.GetRequiredService<ApplicationDBContext>();
+                        Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+                    }
+                }
                 if (context.Database.GetPendingMigrations().Any())
                 {
                     context.Database.Migrate();
                 }
                 SeedCompany.Initialize(services, context);
+                var userManager = services.GetRequiredService<UserManager<User>>();
+                SeedUsers.Initialize(services, userManager, context);
             }
             app.Run();
         }

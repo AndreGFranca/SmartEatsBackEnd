@@ -9,6 +9,8 @@ namespace SmartEats.Profiles.Users
         public UserProfile() {
             CreateMap<CreateUserDTO, User>();
             CreateMap<EditUserDTO, User>();
+            CreateMap<UpdateUserDTO, User>();
+            CreateMap<User, ReadUserDTO>();
         }
     }
 }
