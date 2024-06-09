@@ -58,22 +58,59 @@ namespace SmartEats.Controllers.Menus
             {
                 DateTime now = DateTime.Now;
 
-                // Início da semana (segunda-feira)
                 DateTime startOfWeek = now.AddDays(-(int)now.DayOfWeek);
-                //if (now.DayOfWeek == DayOfWeek.Sunday)
-                //{
-                //    startOfWeek = now.AddDays(-6);
-                //}
 
-                // Fim da semana (domingo)
                 DateTime endOfWeek = startOfWeek.AddDays(6);
 
                 var inicioDaSemana = DateOnly.Parse(startOfWeek.ToString("yyyy-MM-dd"));
                 var finalDaSemana = DateOnly.Parse(endOfWeek.ToString("yyyy-MM-dd"));
 
-                Console.WriteLine("Start of the week: " + startOfWeek.ToString("yyyy-MM-dd"));
-                Console.WriteLine("End of the week: " + endOfWeek.ToString("yyyy-MM-dd"));
                 var menuList = await _service.GetAllMenusCompany(companyId, inicioDaSemana, finalDaSemana);
+
+                return Ok(menuList);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
+
+        }
+
+        [HttpGet("obter-todos-cardapios-funcionario/{companyId}")]
+        public async Task<IActionResult> GetAllMenusWorker(int companyId)
+        {
+            try
+            {
+                var teste = User.Identity;
+                var userId = HttpContext.User.FindFirst(c => c.Type == "id")?.Value;
+                if (userId == null)
+                {
+                    return BadRequest("Token Invalido");
+                }
+                var empresaId = HttpContext.User.FindFirst(c => c.Type == "companyId")?.Value;
+                if (empresaId == null)
+                {
+                    return BadRequest("Erro tente mais tarde");
+                }
+                if (companyId.ToString() != empresaId)
+                {
+                    return BadRequest("Token Invalido");
+                }
+                DateTime now = DateTime.Now;
+
+                DateTime startOfWeek = now.AddDays(-(int)now.DayOfWeek);
+
+                DateTime endOfWeek = startOfWeek.AddDays(6);
+
+                var inicioDaSemana = DateOnly.Parse(startOfWeek.ToString("yyyy-MM-dd"));
+                var finalDaSemana = DateOnly.Parse(endOfWeek.ToString("yyyy-MM-dd"));
+
+                var menuList = await _service.GetAllMenusWorker(companyId, inicioDaSemana, finalDaSemana, userId);
+
                 return Ok(menuList);
             }
             catch (UnauthorizedAccessException ex)

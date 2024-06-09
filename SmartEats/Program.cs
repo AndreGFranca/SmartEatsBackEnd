@@ -11,10 +11,12 @@ using Microsoft.OpenApi.Models;
 using SmartEats.DataBase;
 using SmartEats.Models.Users;
 using SmartEats.Repositories.Confirms;
+using SmartEats.Repositories.Justifies;
 using SmartEats.Repositories.Menus;
 using SmartEats.Repositories.Users;
 using SmartEats.Seeds;
 using SmartEats.Services.Confirms;
+using SmartEats.Services.Justifies;
 using SmartEats.Services.Menus;
 using SmartEats.Services.Users;
 using SmartEats.Services.Validators;
@@ -221,6 +223,9 @@ namespace SmartEats
             builder.Services.AddScoped<ConfirmService>();
             builder.Services.AddScoped<IConfirmsRepository, ConfirmsRepository>();
 
+            builder.Services.AddScoped<JustifyService>();
+            builder.Services.AddScoped<IJustifiesRepository, JustifiesRepository>();
+
             var app = builder.Build();
             // Configure method
             app.UseCors("CorsPolicy");
@@ -249,6 +254,7 @@ namespace SmartEats
                 {
                     try
                     {
+                        context = context ?? services.GetRequiredService<ApplicationDBContext>();
                         if (context.Database.CanConnect())
                         {
                             break;

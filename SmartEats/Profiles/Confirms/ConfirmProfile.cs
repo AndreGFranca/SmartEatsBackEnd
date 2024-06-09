@@ -11,7 +11,8 @@ namespace SmartEats.Profiles.Confirms
         public ConfirmProfile()
         {
             CreateMap<CreateConfirmDTO, Confirm>();
-            //CreateMap<Menu, ReadMenuDTO>();
+            CreateMap<ConfirmPresenceDTO, Confirm>();
+            CreateMap<Confirm, ReadConfirmDTO>();
         }
     }
 }

@@ -128,5 +128,10 @@ namespace SmartEats.Services.Users
             var result = _mapper.Map<ReadUserDTO>(user);
             return result;
         }
+
+        public async Task Logout()
+        {            
+            await _signInManager.SignOutAsync();
+        }
     }
 }

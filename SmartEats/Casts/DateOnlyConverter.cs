@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace SmartEats
+namespace SmartEats.Casts
 {
     public class DateOnlyConverter : ValueConverter<DateOnly, DateTime>
     {

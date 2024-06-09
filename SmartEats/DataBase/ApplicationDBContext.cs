@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SmartEats.Casts;
 using SmartEats.Models.Companies;
 using SmartEats.Models.Confirms;
 using SmartEats.Models.Justifies;
 using SmartEats.Models.Menus;
 using SmartEats.Models.Users;
-using System;
 
 namespace SmartEats.DataBase
 {
@@ -18,8 +18,17 @@ namespace SmartEats.DataBase
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Confirm>(entity =>
+            {
+                entity.Property(e => e.DataConfirmacao)
+                    .HasConversion(new DateOnlyConverter());
+                entity.Property(e => e.HoraDeAlmoco)
+                    .HasConversion(new TimeOnlyConverter());
+            });
+
             modelBuilder.Entity<Menu>().Property(e => e.Data)
-                .HasConversion(new DateOnlyConverter());
+            .HasConversion(new DateOnlyConverter());
 
             modelBuilder.Entity<Menu>()
                 .HasKey(m => new { m.Data, m.IdEmpresa });

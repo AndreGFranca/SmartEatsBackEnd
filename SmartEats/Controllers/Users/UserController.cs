@@ -219,5 +219,24 @@ namespace SmartEats.Controllers.Users
             }
 
         }
+
+        [HttpPost("logout")]        
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                await _userService.Logout();
+                return Ok("Deslogado com sucesso");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
+
+        }
     }
 }

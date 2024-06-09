@@ -21,7 +21,7 @@ namespace SmartEats.Controllers.Confirms
             try
             {
                 var resultado = await _confirmService.RegisterConfirms(listCreateConfirmDTO);
-                if (true)
+                if (resultado)
                 {
                     return Ok("Presença(s) Confirmada com sucesso");
                 }
@@ -58,7 +58,7 @@ namespace SmartEats.Controllers.Confirms
         {
             try
             {
-                var resultado = _confirmService.GetAvailableTimes();
+                var resultado = await _confirmService.GetCountTimes(idEmpresa);
                 if (resultado.Any())
                 {
                     return Ok(resultado);
@@ -71,6 +71,35 @@ namespace SmartEats.Controllers.Confirms
                 return StatusCode(500);
             }
 
+        }
+
+
+        [HttpPut("confirmar-comparecimento/{idFuncionario}")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Empresa,Cozinha")]
+        public async Task<IActionResult> ConfirmPresenceWorker(string idFuncionario, ConfirmPresenceDTO confirm)
+        {
+            try
+            {
+                var resultado = await _confirmService.ConfirmPresenceWorker(idFuncionario, confirm);
+                if (resultado.Item1 == 400)
+                {
+                    return BadRequest(resultado.Item2);
+                }
+                return Ok(resultado.Item2);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
+
+        }
+
+
+        [HttpGet("obter-dias-nao-comparecidos/{idFuncionario}")]
+        public async Task<IActionResult> GetNotPresenceDaysConfirmed(string idFuncionario)
+        {
+            var resultado = await _confirmService.NotPresenceOfConfirmedDay(idFuncionario);
+            return Ok(resultado);
         }
     }
 }

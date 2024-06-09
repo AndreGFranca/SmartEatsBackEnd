@@ -38,7 +38,7 @@ namespace SmartEats.Services.Users
                 issuer: "http://api.smarteats", // Emissor do token
                 audience: "http://api.smarteats", // Audiência do token (pode ser a mesma aplicação)
                 notBefore: DateTime.UtcNow, // Token é válido a partir deste momento
-                expires: DateTime.Now.AddMinutes(10),
+                expires: DateTime.Now.AddMinutes(120),
                 claims: claims,
                 signingCredentials: signingCredentials
                 );
