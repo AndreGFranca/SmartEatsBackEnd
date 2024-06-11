@@ -14,20 +14,30 @@ namespace SmartEats.Repositories
         }
         public async virtual Task Add(TEntity entity)
         {
-            _context.Set<TEntity>().Add(entity);
-            await _context.SaveChangesAsync();
+            using (var context = _context)
+            {
+                context.Set<TEntity>().Add(entity);
+                await context.SaveChangesAsync();
+            }
+                
         }
 
         public async virtual Task AddRange(IList<TEntity> entity)
         {
-            _context.Set<TEntity>().AddRange(entity);
-            await _context.SaveChangesAsync();
+            using (var context = _context)
+            {
+                context.Set<TEntity>().AddRange(entity);
+                await context.SaveChangesAsync();
+            }
         }
 
         public async virtual Task Delete(TEntity entity)
         {
-            _context.Set<TEntity>().Remove(entity);
-            await _context.SaveChangesAsync();
+            using (var context = _context)
+            {
+                context.Set<TEntity>().Remove(entity);
+                await context.SaveChangesAsync();
+            }
         }
 
         public virtual IQueryable<TEntity> Search()
@@ -37,8 +47,11 @@ namespace SmartEats.Repositories
 
         public async virtual Task Update(TEntity entity)
         {
-            _context.Set<TEntity>().Update(entity);
-            await _context.SaveChangesAsync();
+            using (var context = _context)
+            {
+                context.Set<TEntity>().Update(entity);
+                await _context.SaveChangesAsync();
+            }
         }
         public void Dispose()
         {

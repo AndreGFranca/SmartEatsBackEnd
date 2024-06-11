@@ -31,10 +31,13 @@ namespace SmartEats.Services.Menus
             {
                 List<Menu> menu = _mapper.Map<List<Menu>>(newListMenu);
                 await _menusRepository.AddRange(menu);
+                _menusRepository.Dispose();
                 return true;
+
             }
             catch (Exception ex)
             {
+                _menusRepository.Dispose();
                 return false;
             }
 
@@ -48,6 +51,7 @@ namespace SmartEats.Services.Menus
             //var menus = await _menusRepository.Search().ToListAsync();
 
             IList<ReadMenuDTO> readMenus = _mapper.Map<IList<ReadMenuDTO>>(menus);
+            _menusRepository.Dispose();
             return readMenus;
         }
 
@@ -80,6 +84,8 @@ namespace SmartEats.Services.Menus
                                        select new ReadMenuDTO(menu, _mapper.Map<List<ReadPlateDto>>(menu.PlatesDay), true)).ToList();
 
             var readMenus = menusConfirmados.Union(menusNaoConfirmados).Union(menusVencidos).OrderBy(a => a.Data).ToList();
+            _confirmRepository.Dispose();
+            _menusRepository.Dispose();
             //var readMenus = menusConfirmados.Union(menusNaoConfirmados).Union(menusVencidos).OrderBy(a => a.Data).ToList();
             return readMenus;
         }

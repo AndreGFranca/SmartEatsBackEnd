@@ -29,10 +29,12 @@ namespace SmartEats.Services.Confirms
             {
                 var model = _mapper.Map<Confirm>(createConfirmDTO);
                 await _confirmsRepository.Add(model);
+                _confirmsRepository.Dispose();
                 return true;
             }
             catch (Exception ex)
             {
+                _confirmsRepository.Dispose();
                 return false;
             }
 
@@ -44,10 +46,12 @@ namespace SmartEats.Services.Confirms
             {
                 var model = _mapper.Map<List<Confirm>>(createConfirmDTO);
                 await _confirmsRepository.AddRange(model);
+                _confirmsRepository.Dispose();
                 return true;
             }
             catch (Exception ex)
             {
+                _confirmsRepository.Dispose();
                 return false;
             }
 
@@ -79,7 +83,7 @@ namespace SmartEats.Services.Confirms
                                Count = confirmacaoGroup.Sum(c => c.Count)
                            })
                 .ToList();
-
+            _confirmsRepository.Dispose();
             return result;
         }
         public List<TimeOnly> GetAllTimes()
@@ -125,15 +129,18 @@ namespace SmartEats.Services.Confirms
             var funcionario = await _confirmsRepository.Search().Where(a => a.DataConfirmacao == dataAtual && a.IdFuncionario == idUser).FirstOrDefaultAsync();
             if (funcionario == null)
             {
+                _confirmsRepository.Dispose();
                 return (400, "Colaborador não confirmou presença");
             }
             if (funcionario.Compareceu == true)
             {
+                _confirmsRepository.Dispose();
                 return (400, "Colaborador já confirmou comparecimento");
             }
             confirmPresenceDTO.HorarioComparecimento = DateTime.UtcNow.ConvertToBrasiliaTime();
             _mapper.Map(confirmPresenceDTO, funcionario);
             await _confirmsRepository.Update(funcionario);
+            _confirmsRepository.Dispose();
             return (200, "Comparecimento Confirmado!");
         }
 
@@ -147,9 +154,10 @@ namespace SmartEats.Services.Confirms
                     && a.IdFuncionario == idFuncionario
                     && !_justifiesRepository.Search().Any(j => j.IdConfirmacao == a.Id)
                 ).ToListAsync();
-
+            _confirmsRepository.Dispose();
+            _justifiesRepository.Dispose();
             var resultado = _mapper.Map<List<ReadConfirmDTO>>(consulta);
-
+            
             return resultado;
         }
 

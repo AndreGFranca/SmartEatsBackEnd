@@ -20,7 +20,7 @@ namespace SmartEats.Services.Justifies
             var justify = _mapper.Map<Justify>(create);
 
             await _justifiesRepository.Add(justify);
-
+            _justifiesRepository.Dispose();
             return true;
         }
 
@@ -33,7 +33,7 @@ namespace SmartEats.Services.Justifies
                             && a.IdEmpresa == company)
                 .OrderBy(a => a.Id)
                 .ToListAsync();
-
+            _justifiesRepository.Dispose();
             var result = _mapper.Map<List<ReadJustifyDTO>>(justifies);
             return result;
 
@@ -46,7 +46,8 @@ namespace SmartEats.Services.Justifies
                 .Where(a => a.Id == confirmDto.Id).FirstOrDefaultAsync();
 
             _mapper.Map(confirmDto, justify);
-            await _justifiesRepository.Update(justify);            
+            await _justifiesRepository.Update(justify);
+            _justifiesRepository.Dispose();
             return true;
 
         }

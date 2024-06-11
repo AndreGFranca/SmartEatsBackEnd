@@ -29,14 +29,14 @@ namespace SmartEats.Services.Users
             new Claim("companyId", user.Id_Company.ToString()),
             new Claim(ClaimTypes.Role, user.TypeUser.ToString()),
         };
-
-            var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SymmetricSecurityKey"]));
+            
+            var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
             var signingCredentials = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: "http://api.smarteats", // Emissor do token
-                audience: "http://api.smarteats", // Audiência do token (pode ser a mesma aplicação)
+                issuer: _configuration["Jwt:Issuer"], // Emissor do token
+                audience: _configuration["Jwt:Issuer"], // Audiência do token (pode ser a mesma aplicação)
                 notBefore: DateTime.UtcNow, // Token é válido a partir deste momento
                 expires: DateTime.Now.AddMinutes(120),
                 claims: claims,

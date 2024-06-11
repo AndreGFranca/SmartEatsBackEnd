@@ -32,6 +32,7 @@ namespace SmartEats.Services.Users
         {
             User usuario = _mapper.Map<User>(usuarioDto);
             IdentityResult resultado = await _userManager.CreateAsync(usuario, usuarioDto.Password);
+            _userManager.Dispose();
             if (resultado.Succeeded)
                 return;
             throw new ApplicationException("Houve uma falha ao cadastrar o usuário");
@@ -44,11 +45,11 @@ namespace SmartEats.Services.Users
             {
                 throw new UnauthorizedAccessException("Usuário ou/e senha invalidos");
             }
-            var user = _signInManager
+            var user = await _signInManager
                                 .UserManager
-                                .Users.FirstOrDefault(userdb => userdb.NormalizedUserName == dto.Email.ToUpper());
+                                .Users.FirstOrDefaultAsync(userdb => userdb.NormalizedUserName == dto.Email.ToUpper());
             if(!user.Ativo)
-            {
+            {                
                 throw new UnauthorizedAccessException("Usuário Inativado");
             }
 
@@ -63,6 +64,7 @@ namespace SmartEats.Services.Users
                 var user = await _userManager.FindByIdAsync(id);
                 _mapper.Map(editUser, user);
                 var result = await _userManager.UpdateAsync(user);
+                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -71,6 +73,7 @@ namespace SmartEats.Services.Users
 
             }catch(Exception ex)
             {
+                _userManager.Dispose();
                 return false;
             }
 
@@ -82,6 +85,7 @@ namespace SmartEats.Services.Users
                 var user = await _userManager.FindByIdAsync(id);
                 _mapper.Map(editUser, user);
                 var result = await _userManager.UpdateAsync(user);
+                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -99,6 +103,7 @@ namespace SmartEats.Services.Users
         {
             var listaDeUsuarios = await _usersRepository.Search().Where(user => user.Id_Company == id && user.TypeUser != TypeUser.Administrador && user.TypeUser != TypeUser.Empresa).ToListAsync();
             var readListDto = _mapper.Map<List<ReadUserDTO>>(listaDeUsuarios);
+            _usersRepository.Dispose();
             return readListDto;
         }
         public async Task<bool> ChangePassword(string id, PasswordChangeDTO passwordChangeDTO)
@@ -106,8 +111,8 @@ namespace SmartEats.Services.Users
             try
             {
                 var user = await _userManager.FindByIdAsync(id);
-                var result = await _userManager.ChangePasswordAsync(user!,passwordChangeDTO.CurrentPassword,passwordChangeDTO.NewPassword);                
-                
+                var result = await _userManager.ChangePasswordAsync(user!,passwordChangeDTO.CurrentPassword,passwordChangeDTO.NewPassword);
+                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -126,12 +131,14 @@ namespace SmartEats.Services.Users
         {
             var user = await _userManager.FindByIdAsync(idUsuario);
             var result = _mapper.Map<ReadUserDTO>(user);
+            _userManager.Dispose();
             return result;
         }
 
         public async Task Logout()
         {            
             await _signInManager.SignOutAsync();
+            _userManager.Dispose();
         }
     }
 }

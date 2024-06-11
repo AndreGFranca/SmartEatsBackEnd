@@ -34,14 +34,15 @@ namespace SmartEats
             IConfiguration configuration = new ConfigurationBuilder()
               .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
               .AddJsonFile("appsettings.json")
-              .Build();
+              .Build();            
 
             var server = Environment.GetEnvironmentVariable("DbServer") ?? "localhost";
             var port = Environment.GetEnvironmentVariable("DbPort") ?? "3306";
             var user = Environment.GetEnvironmentVariable("DbUser") ?? "app";
             var password = Environment.GetEnvironmentVariable("Password") ?? "12345678";
             var database = Environment.GetEnvironmentVariable("Database") ?? "smarteat";
-            var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password}";
+            var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password};default command timeout=0;SslMode=none";
+            Console.WriteLine($"{server} {port} {user} {password} {database}");
             // ConfigureServices method
             builder.Services.AddCors(options =>
             {
@@ -61,7 +62,9 @@ namespace SmartEats
 
                 opts
                 .UseLazyLoadingProxies()
-                .UseMySQL(connectionString);
+                .UseMySQL(connectionString)
+                .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
+                
                 
                 //(connectionString, ServerVersion.AutoDetect(connectionString),
                 //     b => b.MigrationsAssembly("SmartEats")
