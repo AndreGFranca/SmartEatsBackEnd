@@ -18,7 +18,7 @@ namespace SmartEats.Seeds
                     new Company { Name = "Vini's Company", CNPJ = "123456782" }
                 );
 
-                context.SaveChanges();
+                context.SaveChangesAsync().Wait();
             }
         }
     }

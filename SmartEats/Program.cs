@@ -34,14 +34,14 @@ namespace SmartEats
             IConfiguration configuration = new ConfigurationBuilder()
               .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
               .AddJsonFile("appsettings.json")
-              .Build();            
+              .Build();
 
             var server = Environment.GetEnvironmentVariable("DbServer") ?? "localhost";
             var port = Environment.GetEnvironmentVariable("DbPort") ?? "3306";
             var user = Environment.GetEnvironmentVariable("DbUser") ?? "app";
             var password = Environment.GetEnvironmentVariable("Password") ?? "12345678";
             var database = Environment.GetEnvironmentVariable("Database") ?? "smarteat";
-            var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password};default command timeout=0;SslMode=none";
+            var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password};Pooling=true;MinPoolSize=0;MaxPoolSize=2;Connection Lifetime=15";
             Console.WriteLine($"{server} {port} {user} {password} {database}");
             // ConfigureServices method
             builder.Services.AddCors(options =>
@@ -58,22 +58,25 @@ namespace SmartEats
 
 
             // Add services to the container.
-            builder.Services.AddDbContext<ApplicationDBContext>(opts => {
+            builder.Services.AddDbContextPool<ApplicationDBContext>(opts =>
+            {
 
                 opts
                 .UseLazyLoadingProxies()
-                .UseMySQL(connectionString)
-                .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information);
-                
-                
-                //(connectionString, ServerVersion.AutoDetect(connectionString),
-                //     b => b.MigrationsAssembly("SmartEats")
-                //);
-            });
+                .UseMySQL(connectionString, option =>
+                {
+                    ServerVersion.AutoDetect(connectionString);
+                })
+                .LogTo(Console.WriteLine, LogLevel.Information)
+                .EnableSensitiveDataLogging();                
 
-            builder.Services.AddAuthentication(options => {
+
+            }, 2);
+
+            builder.Services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
                 .AddJwtBearer(options =>
                 {
@@ -88,59 +91,10 @@ namespace SmartEats
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
                         SaveSigninToken = true
                     };
-
-                    //options.Events = new JwtBearerEvents
-                    //{
-                    //    OnAuthenticationFailed = context =>
-                    //    {
-                    //        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                    //        {
-                    //            context.Response.Headers.Add("Token-Expired", "true");
-                    //        }
-                    //        context.Response.StatusCode = 401;
-                    //        context.Response.ContentType = "application/json";
-                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "Authentication failed." });
-                    //        return context.Response.WriteAsync(result);
-                    //    },
-                    //    OnChallenge = context =>
-                    //    {
-                    //        context.Response.StatusCode = 401;
-                    //        context.Response.ContentType = "application/json";
-                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
-                    //        return context.Response.WriteAsync(result);
-                    //    },
-                    //    OnForbidden = context => {
-                    //        context.Response.StatusCode = 401;
-                    //        context.Response.ContentType = "application/json";
-                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
-                    //        return context.Response.WriteAsync(result);
-                    //    },OnTokenValidated = context => {
-                    //        context.Response.StatusCode = 401;
-                    //        context.Response.ContentType = "application/json";
-                    //        var result = System.Text.Json.JsonSerializer.Serialize(new { message = "You are not authorized." });
-                    //        return context.Response.WriteAsync(result);
-                    //    }
-
-
-                        
-                        
-
-                        
-                    //};
                 });
 
             builder.Services.AddAuthorization(options =>
             {
-                //opts.AddPolicy("IdadeMinima", policy =>
-                //{
-                //    policy.AddRequirements(new IdadeMinima(18));
-                //});
-
-                //Administrador,
-                //Empresa,
-                //RH,
-                //Funcionario,
-                //Cozinha                
                 options.AddPolicy("AdministradorPolicy", policy => policy.RequireClaim("role", "Administrador"));
                 options.AddPolicy("EmpresaPolicy", policy => policy.RequireClaim("role", "Empresa"));
                 options.AddPolicy("FuncionarioPolicy", policy => policy.RequireClaim("role", "Funcionario"));
@@ -249,34 +203,44 @@ namespace SmartEats
             //Verifica as migrations
             using (var scope = app.Services.CreateScope())
             {
-                
                 var services = scope.ServiceProvider;
 
-                ApplicationDBContext? context = null;
-                while (true)
+                // Verificar conexão e aplicar migrações se necessário
+                using (var context = services.GetRequiredService<ApplicationDBContext>())
                 {
-                    try
+                    while (true)
                     {
-                        context = context ?? services.GetRequiredService<ApplicationDBContext>();
-                        if (context.Database.CanConnect())
+                        try
                         {
-                            break;
+                            if (context.Database.CanConnect())
+                            {
+                                break;
+                            }
                         }
-                        context = services.GetRequiredService<ApplicationDBContext>();
+                        catch
+                        {
+                            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+                        }
                     }
-                    catch
+
+                    if (context.Database.GetPendingMigrations().Any())
                     {
-                        context = services.GetRequiredService<ApplicationDBContext>();
-                        Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+                        context.Database.Migrate();
                     }
-                }
-                if (context.Database.GetPendingMigrations().Any())
+                } // Conexão fechada ao sair do bloco using
+
+                // Semente inicializadora
+                using (var context = services.GetRequiredService<ApplicationDBContext>())
                 {
-                    context.Database.Migrate();
-                }
-                SeedCompany.Initialize(services, context);
-                var userManager = services.GetRequiredService<UserManager<User>>();
-                SeedUsers.Initialize(services, userManager, context);
+                    SeedCompany.Initialize(services, context);
+                } // Conexão fechada ao sair do bloco using
+
+                // Inicializar usuários
+                using (var context = services.GetRequiredService<ApplicationDBContext>())
+                {
+                    var userManager = services.GetRequiredService<UserManager<User>>();
+                    SeedUsers.Initialize(services, userManager, context);
+                } // Conexão fechada ao sair do bloco using
             }
             app.Run();
         }
