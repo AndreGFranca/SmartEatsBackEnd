@@ -84,7 +84,7 @@ namespace SmartEats.Controllers.Users
 
         [HttpGet("lista-funcionarios-empresa/{idEmpresa}")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Empresa,RH")]
-        public async Task<IActionResult> ListWorkers(int idEmpresa)
+        public async Task<IActionResult> ListWorkers(int idEmpresa, [FromQuery] string? nome)
         {
             try
             {
@@ -99,15 +99,10 @@ namespace SmartEats.Controllers.Users
                     return BadRequest("Token Invalido");
                 }
 
-                var resultado = await _userService.ListUsersCompany(idEmpresa);
-                if (resultado.Any())
-                {
-                    return Ok(resultado);
-                }
-                else
-                {
-                    return BadRequest("Resultado não encontrado");
-                }
+                var resultado = await _userService.ListUsersCompany(idEmpresa, nome);
+
+                return Ok(resultado);
+
 
             }
             catch (Exception ex)
@@ -220,7 +215,7 @@ namespace SmartEats.Controllers.Users
 
         }
 
-        [HttpPost("logout")]        
+        [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
             try

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SmartEats.DataBase;
 using SmartEats.DTOs.Users;
 using SmartEats.Enums.Users;
@@ -32,7 +33,6 @@ namespace SmartEats.Services.Users
         {
             User usuario = _mapper.Map<User>(usuarioDto);
             IdentityResult resultado = await _userManager.CreateAsync(usuario, usuarioDto.Password);
-            _userManager.Dispose();
             if (resultado.Succeeded)
                 return;
             throw new ApplicationException("Houve uma falha ao cadastrar o usuário");
@@ -64,7 +64,6 @@ namespace SmartEats.Services.Users
                 var user = await _userManager.FindByIdAsync(id);
                 _mapper.Map(editUser, user);
                 var result = await _userManager.UpdateAsync(user);
-                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -73,7 +72,6 @@ namespace SmartEats.Services.Users
 
             }catch(Exception ex)
             {
-                _userManager.Dispose();
                 return false;
             }
 
@@ -85,7 +83,6 @@ namespace SmartEats.Services.Users
                 var user = await _userManager.FindByIdAsync(id);
                 _mapper.Map(editUser, user);
                 var result = await _userManager.UpdateAsync(user);
-                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -99,11 +96,15 @@ namespace SmartEats.Services.Users
             }
 
         }
-        public async Task<IList<ReadUserDTO>> ListUsersCompany(int id)
-        {
+        public async Task<IList<ReadUserDTO>> ListUsersCompany(int id, string? name = null)
+        {            
+            var validaNome = (User user) => user.Name.ToUpper().Contains(name.ToUpper());
             var listaDeUsuarios = await _usersRepository.Search().Where(user => user.Id_Company == id && user.TypeUser != TypeUser.Administrador && user.TypeUser != TypeUser.Empresa).ToListAsync();
+            if (!name.IsNullOrEmpty())
+            {
+                listaDeUsuarios = listaDeUsuarios.Where(a => validaNome(a)).ToList();
+            }
             var readListDto = _mapper.Map<List<ReadUserDTO>>(listaDeUsuarios);
-            _usersRepository.Dispose();
             return readListDto;
         }
         public async Task<bool> ChangePassword(string id, PasswordChangeDTO passwordChangeDTO)
@@ -112,7 +113,6 @@ namespace SmartEats.Services.Users
             {
                 var user = await _userManager.FindByIdAsync(id);
                 var result = await _userManager.ChangePasswordAsync(user!,passwordChangeDTO.CurrentPassword,passwordChangeDTO.NewPassword);
-                _userManager.Dispose();
                 if (result.Succeeded)
                 {
                     return true;
@@ -131,14 +131,12 @@ namespace SmartEats.Services.Users
         {
             var user = await _userManager.FindByIdAsync(idUsuario);
             var result = _mapper.Map<ReadUserDTO>(user);
-            _userManager.Dispose();
             return result;
         }
 
         public async Task Logout()
         {            
             await _signInManager.SignOutAsync();
-            _userManager.Dispose();
         }
     }
 }
