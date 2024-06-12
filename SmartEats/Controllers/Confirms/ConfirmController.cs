@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartEats.DTOs.Confirms;
 using SmartEats.Services.Confirms;
+using SmartEats.Services.Users;
 
 namespace SmartEats.Controllers.Confirms
 {
@@ -10,10 +11,12 @@ namespace SmartEats.Controllers.Confirms
     [Authorize(AuthenticationSchemes = "Bearer")]
     public class ConfirmController : StandardController
     {
-        readonly ConfirmService _confirmService;
-        public ConfirmController(ConfirmService confirmService)
+        private readonly ConfirmService _confirmService;
+        private readonly UserService _userService;
+        public ConfirmController(ConfirmService confirmService,UserService userService)
         {
             _confirmService = confirmService;
+            _userService = userService;
         }
         [HttpPost("confirmar-presenca")]
         public async Task<IActionResult> ConfirmPresence(List<CreateConfirmDTO> listCreateConfirmDTO)
@@ -80,6 +83,17 @@ namespace SmartEats.Controllers.Confirms
         {
             try
             {
+
+                var companyId = HttpContext.User.FindFirst(c => c.Type == "companyId")?.Value;
+                var user = await _userService.GetUser(idFuncionario);
+                if (companyId == null)
+                {
+                    return BadRequest("Houve um erro na hora de validar a empresa");
+                }
+                if (companyId != user.Company.Id.ToString())
+                {
+                    return BadRequest("Houve um erro na hora de validar a empresa");
+                }
                 var resultado = await _confirmService.ConfirmPresenceWorker(idFuncionario, confirm);
                 if (resultado.Item1 == 400)
                 {
