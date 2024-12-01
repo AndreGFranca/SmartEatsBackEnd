@@ -17,7 +17,9 @@ namespace SmartEats.Seeds
                     new Company { Name = "Diego's Company", CNPJ = "123456781" },
                     new Company { Name = "Vini's Company", CNPJ = "123456782" },
                     new Company { Name = "Vitor's Company", CNPJ = "123456783" },
-                    new Company { Name = "Peterson's Company", CNPJ = "123456784" }
+                    new Company { Name = "Peterson's Company", CNPJ = "123456784" },
+                    new Company { Name = "Coordenador's Company", CNPJ = "123456785" },
+                    new Company { Name = "Elvis's Company", CNPJ = "123456786" }
                 );
 
                 context.SaveChangesAsync().Wait();
