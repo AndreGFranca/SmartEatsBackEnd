@@ -8,6 +8,7 @@ using SmartEats.Enums.Users;
 using SmartEats.Models.Users;
 using SmartEats.Repositories.Users;
 using System.Security.Claims;
+using System.Xml.Linq;
 
 namespace SmartEats.Services.Users
 {
@@ -126,10 +127,36 @@ namespace SmartEats.Services.Users
             }
 
         }
+        public async Task<bool> ChangePasswordByCode(string id, UpdatePasswordRequest passwordChangeDTO)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                await _userManager.RemovePasswordAsync(user);
+                var result = await _userManager.AddPasswordAsync(user, passwordChangeDTO.NewPassword);
+                if (result.Succeeded)
+                {
+                    return true;
+                }
+                return false;
+
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
 
         public async Task<ReadUserDTO> GetUser(string idUsuario)
         {
             var user = await _userManager.FindByIdAsync(idUsuario);
+            var result = _mapper.Map<ReadUserDTO>(user);
+            return result;
+        }
+
+        public async Task<ReadUserDTO> GetUserByEmail(string email)
+        {
+            var user = await _usersRepository.Search().FirstAsync(a => a.UserName == email.ToLower());
             var result = _mapper.Map<ReadUserDTO>(user);
             return result;
         }

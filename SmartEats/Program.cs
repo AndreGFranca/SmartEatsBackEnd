@@ -16,6 +16,7 @@ using SmartEats.Repositories.Menus;
 using SmartEats.Repositories.Users;
 using SmartEats.Seeds;
 using SmartEats.Services.Confirms;
+using SmartEats.Services.Emails;
 using SmartEats.Services.Justifies;
 using SmartEats.Services.Menus;
 using SmartEats.Services.Users;
@@ -42,7 +43,9 @@ namespace SmartEats
             var password = Environment.GetEnvironmentVariable("Password") ?? "12345678";
             var database = Environment.GetEnvironmentVariable("Database") ?? "smarteat";
             var connectionString = $"Server={server}, {port};Initial Catalog={database};User ID={user};Password={password};Pooling=true;MinPoolSize=0;MaxPoolSize=2;Connection Lifetime=15";
+            //var connectionString = $"Server={server};Port={port};Initial Catalog={database};User ID={user};Password={password};";
             Console.WriteLine($"{server} {port} {user} {password} {database}");
+            Console.WriteLine(connectionString);
             // ConfigureServices method
             builder.Services.AddCors(options =>
             {
@@ -71,7 +74,7 @@ namespace SmartEats
                 .EnableSensitiveDataLogging();                
 
 
-            }, 2);
+            },2);
 
             builder.Services.AddAuthentication(options =>
             {
@@ -182,6 +185,11 @@ namespace SmartEats
 
             builder.Services.AddScoped<JustifyService>();
             builder.Services.AddScoped<IJustifiesRepository, JustifiesRepository>();
+
+            builder.Services.AddScoped<EmailService>();
+
+            builder.Services.AddScoped<PasswordResetService>();
+            builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
 
             var app = builder.Build();
             // Configure method

@@ -40,7 +40,7 @@ namespace SmartEats.Seeds
                         Name = "Diego's Company",
                         CPF = "123456781",
                         UserName = "diego@gmail.com",
-                        Id_Company = 2,
+                        Id_Company = 3,
                         TypeUser = Enums.Users.TypeUser.Empresa,
                         Ativo = true,
                     }, "@1234Diego").Wait();
@@ -51,10 +51,33 @@ namespace SmartEats.Seeds
                         Name = "Vini's Company",
                         CPF = "123456782",
                         UserName = "vini@gmail.com",
-                        Id_Company = 2,
+                        Id_Company = 4,
                         TypeUser = Enums.Users.TypeUser.Empresa,
                         Ativo = true,
                     }, "@1234Vini").Wait();
+
+                userManager.CreateAsync(
+                new User
+                {
+                    Name = "Vitor's Company",
+                    CPF = "123456783",
+                    UserName = "vitor@gmail.com",
+                    Id_Company = 5,
+                    TypeUser = Enums.Users.TypeUser.Empresa,
+                    Ativo = true,
+                }, "@1234Vitor").Wait();
+
+                userManager.CreateAsync(
+                new User
+                {
+                    Name = "Peterson's Company",
+                    CPF = "123456784",
+                    UserName = "peterson@gmail.com",
+                    Id_Company = 6,
+                    TypeUser = Enums.Users.TypeUser.Empresa,
+                    Ativo = true,
+                }, "@1234Peterson").Wait();
+
             }
         }
     }

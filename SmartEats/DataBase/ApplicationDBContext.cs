@@ -65,6 +65,7 @@ namespace SmartEats.DataBase
         public DbSet<Justify> Justifies { get; set; }
         public DbSet<Menu> Menus { get; set; }
         public DbSet<PlateDay> PlatesDay { get; set; }
+        public DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
 
         //public DbSet<TypeUser> TypesUser { get; set; }
     }
